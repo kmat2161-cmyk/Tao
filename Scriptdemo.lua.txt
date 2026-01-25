@@ -1,96 +1,83 @@
-local MakeWindow = loadstring(game:HttpGet(("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2/refs/heads/main/UiREDzV2.lua")))()
+-- [[ MENU SÓNG THẦN - PHIÊN BẢN CHÍNH CHỦ ]]
+-- Zalo Hỗ Trợ: 0937166365
 
-local Window = MakeWindow({
-  Hub = {
-    Title = "SÓNG THẦN",
-    Animation = "Youtube: TBoy Roblox"
-  },
-  Key = {
-    KeySystem = true,
-    Title = "Key System",
-    Description = "Nhập Key để sử dụng Menu",
-    KeyLink = "",
-    Keys = {"1234"}, -- Đã đổi key thành 1234
-    Notifi = {
-      Notifications = true,
-      CorrectKey = "Đang mở Menu...",
-      Incorrectkey = "Sai Key rồi bạn ơi!",
-      CopyKeyLink = "Đã sao chép link key"
-    }
-  }
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "🌊 MENU SÓNG THẦN",
+   LoadingTitle = "Đang Khởi Chạy...",
+   LoadingSubtitle = "Zalo: 0937166365",
+   ConfigurationSaving = {
+      Enabled = false
+   },
+   KeySystem = true, -- Bật Key
+   KeySettings = {
+      Title = "HỆ THỐNG KEY",
+      Subtitle = "Zalo lấy Key: 0937166365",
+      Note = "Nhập Key để bắt đầu sinh tồn!",
+      FileName = "KeySongThan",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"1234"} -- Key của bạn
+   }
 })
 
-MinimizeButton({
-  Image = "http://www.roblox.com/asset/?id=83190276951914",
-  Size = {60, 60},
-  Color = Color3.fromRGB(10, 10, 10),
-  Corner = true,
-  Stroke = false,
-  StrokeColor = Color3.fromRGB(255, 0, 0)
+------- [ TAB CHỨC NĂNG ] -------
+local MainTab = Window:CreateTab("🔥 Chức Năng", 4483362458)
+
+MainTab:CreateButton({
+   Name = "🛡️ Bật Bất Tử (God Mode)",
+   Callback = function()
+       -- Chế độ bất tử cho game Brainrot Tsunami
+       local player = game.Players.LocalPlayer
+       if player.Character and player.Character:FindFirstChild("Humanoid") then
+           player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+           Rayfield:Notify({
+              Title = "THÀNH CÔNG",
+              Content = "Đã bật Bất Tử! Bạn không thể chết.",
+              Duration = 3,
+              Image = 4483362458,
+           })
+       end
+   end,
 })
 
-------- TẠO TAB MENU (CHỨC NĂNG GAME) -------
-local TabMenu = MakeTab({Name = "Menu"})
-
-AddButton(TabMenu, {
-  Name = "Bất Tử (God Mode)",
-  Callback = function()
-    -- Khóa trạng thái chết
-    game.Players.LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-    print("Đã bật Bất Tử")
-  end
+MainTab:CreateButton({
+   Name = "🚀 Bay Lên (Thoát Sóng)",
+   Callback = function()
+       local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+       hrp.CFrame = hrp.CFrame * CFrame.new(0, 60, 0)
+   end,
 })
 
-AddButton(TabMenu, {
-  Name = "Bay Lên (Né Sóng)",
-  Callback = function()
-    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
-    hrp.CFrame = hrp.CFrame * CFrame.new(0, 50, 0) -- Bay lên 50 mét
-  end
+MainTab:CreateButton({
+   Name = "🔽 Hạ Xuống Đất",
+   Callback = function()
+       local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+       hrp.CFrame = hrp.CFrame * CFrame.new(0, -60, 0)
+   end,
 })
 
-AddButton(TabMenu, {
-  Name = "Hạ Xuống",
-  Callback = function()
-    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
-    hrp.CFrame = hrp.CFrame * CFrame.new(0, -50, 0) -- Hạ xuống 50 mét
-  end
+MainTab:CreateSlider({
+   Name = "⚡ Tốc Độ Chạy",
+   Range = {16, 300},
+   Increment = 1,
+   Suffix = " Speed",
+   CurrentValue = 16,
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+   end,
 })
 
-AddSlider(TabMenu, {
-  Name = "Tốc Độ (Speed)",
-  Min = 16,
-  Max = 500,
-  Default = 16,
-  Callback = function(v)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-  end
-})
+------- [ TAB THÔNG TIN ] -------
+local InfoTab = Window:CreateTab("📋 Liên Hệ", 4483362458)
 
-------- TẠO TAB CÀI ĐẶT -------
-local TabSet = MakeTab({Name = "Cài Đặt"})
+InfoTab:CreateLabel("Chủ Menu: [Tên Của Bạn]")
+InfoTab:CreateLabel("Zalo: 0937166365")
 
-AddButton(TabSet, {
-  Name = "Chế Độ Tối (Mặc định)",
-  Callback = function()
-    -- Thư viện REDz mặc định là nền tối
-  end
-})
-
-AddButton(TabSet, {
-  Name = "Chế Độ Sáng (Light)",
-  Callback = function()
-    -- Lệnh đổi màu UI (Nếu thư viện hỗ trợ)
-    print("Đã chọn chế độ sáng")
-  end
-})
-
-AddButton(TabSet, {
-  Name = "Tắt Script",
-  Callback = function()
-    -- Xóa menu khỏi màn hình
-    for _, v in pairs(game:GetService("CoreGui"):GetChildren()) do
-        if v:FindFirstChild("Main") then v:Destroy() end
-    end
-  end
+InfoTab:CreateButton({
+   Name = "❌ Tắt Menu",
+   Callback = function()
+       Rayfield:Destroy()
+   end,
 })
