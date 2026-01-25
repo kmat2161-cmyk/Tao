@@ -1,0 +1,96 @@
+local MakeWindow = loadstring(game:HttpGet(("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2/refs/heads/main/UiREDzV2.lua")))()
+
+local Window = MakeWindow({
+  Hub = {
+    Title = "SÓNG THẦN",
+    Animation = "Youtube: TBoy Roblox"
+  },
+  Key = {
+    KeySystem = true,
+    Title = "Key System",
+    Description = "Nhập Key để sử dụng Menu",
+    KeyLink = "",
+    Keys = {"1234"}, -- Đã đổi key thành 1234
+    Notifi = {
+      Notifications = true,
+      CorrectKey = "Đang mở Menu...",
+      Incorrectkey = "Sai Key rồi bạn ơi!",
+      CopyKeyLink = "Đã sao chép link key"
+    }
+  }
+})
+
+MinimizeButton({
+  Image = "http://www.roblox.com/asset/?id=83190276951914",
+  Size = {60, 60},
+  Color = Color3.fromRGB(10, 10, 10),
+  Corner = true,
+  Stroke = false,
+  StrokeColor = Color3.fromRGB(255, 0, 0)
+})
+
+------- TẠO TAB MENU (CHỨC NĂNG GAME) -------
+local TabMenu = MakeTab({Name = "Menu"})
+
+AddButton(TabMenu, {
+  Name = "Bất Tử (God Mode)",
+  Callback = function()
+    -- Khóa trạng thái chết
+    game.Players.LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+    print("Đã bật Bất Tử")
+  end
+})
+
+AddButton(TabMenu, {
+  Name = "Bay Lên (Né Sóng)",
+  Callback = function()
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+    hrp.CFrame = hrp.CFrame * CFrame.new(0, 50, 0) -- Bay lên 50 mét
+  end
+})
+
+AddButton(TabMenu, {
+  Name = "Hạ Xuống",
+  Callback = function()
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+    hrp.CFrame = hrp.CFrame * CFrame.new(0, -50, 0) -- Hạ xuống 50 mét
+  end
+})
+
+AddSlider(TabMenu, {
+  Name = "Tốc Độ (Speed)",
+  Min = 16,
+  Max = 500,
+  Default = 16,
+  Callback = function(v)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+  end
+})
+
+------- TẠO TAB CÀI ĐẶT -------
+local TabSet = MakeTab({Name = "Cài Đặt"})
+
+AddButton(TabSet, {
+  Name = "Chế Độ Tối (Mặc định)",
+  Callback = function()
+    -- Thư viện REDz mặc định là nền tối
+  end
+})
+
+AddButton(TabSet, {
+  Name = "Chế Độ Sáng (Light)",
+  Callback = function()
+    -- Lệnh đổi màu UI (Nếu thư viện hỗ trợ)
+    print("Đã chọn chế độ sáng")
+  end
+})
+
+AddButton(TabSet, {
+  Name = "Tắt Script",
+  Callback = function()
+    -- Xóa menu khỏi màn hình
+    for _, v in pairs(game:GetService("CoreGui"):GetChildren()) do
+        if v:FindFirstChild("Main") then v:Destroy() end
+    end
+  end
+})
