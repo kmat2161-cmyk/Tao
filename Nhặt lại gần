@@ -1,0 +1,34 @@
+-- [[ COPY ĐÚNG ĐOẠN NÀY ]] --
+
+local AutoCollect = false -- Biến kiểm soát
+
+-- Vòng lặp tự động (Chạy ngầm)
+task.spawn(function()
+    while task.wait(0.3) do
+        if AutoCollect then
+            pcall(function()
+                local hrp = game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        local p = v.Parent
+                        local pos = p:IsA("Model") and p:GetModelCFrame().p or (p:IsA("BasePart") and p.Position)
+                        
+                        if pos and (hrp.Position - pos).Magnitude < 25 then
+                            v.HoldDuration = 0
+                            fireproximityprompt(v)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Tạo Toggle trong Menu Redz V2 của bạn
+RedzLib:AddToggle(Tab1o, {
+    Name = "Tự Động Nhặt (Lại Gần)",
+    Default = false,
+    Callback = function(Value)
+        AutoCollect = Value
+    end
+})
