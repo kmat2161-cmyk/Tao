@@ -1,37 +1,76 @@
--- [[ tri73637 - ZERO LAG MOVEMENT ]] --
+-- [[ tri73637 - MENU TOGGLE V64 ]] --
 local lp = game:GetService("Players").LocalPlayer
-local pps = game:GetService("ProximityPromptService")
+local pgui = lp:FindFirstChild("PlayerGui")
 
--- Cấu hình
-local RANGE = 22
+-- 1. XÓA MENU CŨ NẾU CÓ
+if pgui:FindFirstChild("tri73637_V64") then pgui.tri73637_V64:Destroy() end
 
--- Tắt kiểm tra khoảng cách của Prompt để nhặt mượt hơn
-pps.PromptTriggered:Connect(function(prompt)
-    prompt.HoldDuration = 0
+local sg = Instance.new("ScreenGui", pgui)
+sg.Name = "tri73637_V64"
+sg.ResetOnSpawn = false -- Chết đi menu vẫn còn
+
+-- 2. KHUNG MENU (MÀU ĐEN VIỀN XANH)
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0, 180, 0, 120)
+main.Position = UDim2.new(0.5, -90, 0.4, 0) -- Giữa màn hình
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+main.BorderSizePixel = 2
+main.Active = true
+main.Draggable = true -- Có thể kéo đi nếu nó che màn hình
+
+local line = Instance.new("Frame", main)
+line.Size = UDim2.new(1, 0, 0, 2)
+line.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "tri73637 V64"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundTransparency = 1
+
+-- 3. NÚT BẬT/TẮT (TOGGLE)
+local auto = true -- Mặc định bật khi chạy script
+local btn = Instance.new("TextButton", main)
+btn.Size = UDim2.new(0.9, 0, 0.5, 0)
+btn.Position = UDim2.new(0.05, 0, 0.35, 0)
+btn.Text = "AUTO NHẶT: BẬT"
+btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+btn.TextColor3 = Color3.new(1, 1, 1)
+btn.TextSize = 16
+
+-- Hiệu ứng bo góc nút
+local corner = Instance.new("UICorner", btn)
+
+btn.MouseButton1Click:Connect(function()
+    auto = not auto
+    if auto then
+        btn.Text = "AUTO NHẶT: BẬT"
+        btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    else
+        btn.Text = "AUTO NHẶT: TẮT"
+        btn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    end
 end)
 
+-- 4. LOGIC NHẶT ĐỒ (CHẠY NGẦM THEO BIẾN "AUTO")
 task.spawn(function()
-    while task.wait(0.3) do -- Tần suất vừa đủ để không bị nghẽn mạng (Ping cao gây lag di chuyển)
-        local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
-        if not hrp then continue end
-
-        -- Sử dụng GetPartBoundsInRadius để tìm đồ vật xung quanh (Cực nhanh, không lag)
-        local overlapParams = OverlapParams.new()
-        overlapParams.FilterType = Enum.RaycastFilterType.Exclude
-        overlapParams.FilterDescendantsInstances = {lp.Character}
-
-        local nearbyParts = workspace:GetPartBoundsInRadius(hrp.Position, RANGE, overlapParams)
-        
-        for _, part in pairs(nearbyParts) do
-            -- Tìm ProximityPrompt trong vật thể hoặc cha của nó
-            local prompt = part:FindFirstChildOfClass("ProximityPrompt") or part.Parent:FindFirstChildOfClass("ProximityPrompt")
-            
-            if prompt then
-                task.spawn(function()
-                    prompt.HoldDuration = 0
-                    fireproximityprompt(prompt)
-                end)
-            end
+    while task.wait(0.2) do
+        if auto then
+            pcall(function()
+                local hrp = lp.Character.HumanoidRootPart
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        local parent = v.Parent
+                        local targetPos = parent:IsA("BasePart") and parent.Position or parent:GetModelCFrame().p
+                        
+                        -- Khoảng cách nhặt 22 studs
+                        if (hrp.Position - targetPos).Magnitude < 22 then
+                            v.HoldDuration = 0
+                            fireproximityprompt(v)
+                        end
+                    end
+                end
+            end)
         end
     end
 end)
