@@ -1,31 +1,36 @@
--- [[ tri73637 - SMOOTH MOVEMENT V64 ]] --
+-- [[ tri73637 - ZERO LAG MOVEMENT ]] --
 local lp = game:GetService("Players").LocalPlayer
 local pps = game:GetService("ProximityPromptService")
 
--- Tối ưu hóa: Giảm tần suất quét để không đè lệnh di chuyển
+-- Cấu hình
+local RANGE = 22
+
+-- Tắt kiểm tra khoảng cách của Prompt để nhặt mượt hơn
+pps.PromptTriggered:Connect(function(prompt)
+    prompt.HoldDuration = 0
+end)
+
 task.spawn(function()
-    while task.wait(0.3) do -- 0.3s là khoảng cách vàng để không bị khựng
-        local character = lp.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    while task.wait(0.3) do -- Tần suất vừa đủ để không bị nghẽn mạng (Ping cao gây lag di chuyển)
+        local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then continue end
+
+        -- Sử dụng GetPartBoundsInRadius để tìm đồ vật xung quanh (Cực nhanh, không lag)
+        local overlapParams = OverlapParams.new()
+        overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+        overlapParams.FilterDescendantsInstances = {lp.Character}
+
+        local nearbyParts = workspace:GetPartBoundsInRadius(hrp.Position, RANGE, overlapParams)
         
-        if hrp then
-            -- Chỉ quét các Prompt đang hiển thị (tối ưu nhất của Roblox)
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("ProximityPrompt") then
-                    local parent = v.Parent
-                    if parent and parent:IsA("BasePart") then
-                        local dist = (hrp.Position - parent.Position).Magnitude
-                        
-                        -- Chỉ kích hoạt nếu trong tầm nhặt (22 studs)
-                        if dist < 22 then
-                            v.HoldDuration = 0
-                            -- Dùng Task.spawn để việc nhặt đồ chạy riêng, không cản trở di chuyển
-                            task.spawn(function()
-                                fireproximityprompt(v)
-                            end)
-                        end
-                    end
-                end
+        for _, part in pairs(nearbyParts) do
+            -- Tìm ProximityPrompt trong vật thể hoặc cha của nó
+            local prompt = part:FindFirstChildOfClass("ProximityPrompt") or part.Parent:FindFirstChildOfClass("ProximityPrompt")
+            
+            if prompt then
+                task.spawn(function()
+                    prompt.HoldDuration = 0
+                    fireproximityprompt(prompt)
+                end)
             end
         end
     end
