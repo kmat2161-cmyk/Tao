@@ -1,76 +1,36 @@
--- [[ tri73637 - MENU TOGGLE V64 ]] --
-local lp = game:GetService("Players").LocalPlayer
-local pgui = lp:FindFirstChild("PlayerGui")
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
 
--- 1. XÓA MENU CŨ NẾU CÓ
-if pgui:FindFirstChild("tri73637_V64") then pgui.tri73637_V64:Destroy() end
+_G.AutoPick = false
 
-local sg = Instance.new("ScreenGui", pgui)
-sg.Name = "tri73637_V64"
-sg.ResetOnSpawn = false -- Chết đi menu vẫn còn
+local PICK_DISTANCE = 18      -- khoảng cách nhặt
+local MAX_PER_LOOP = 2        -- giới hạn mỗi vòng (chống giật)
+local LOOP_DELAY = 0.45       -- càng lớn càng mượt
 
--- 2. KHUNG MENU (MÀU ĐEN VIỀN XANH)
-local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 180, 0, 120)
-main.Position = UDim2.new(0.5, -90, 0.4, 0) -- Giữa màn hình
-main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-main.BorderSizePixel = 2
-main.Active = true
-main.Draggable = true -- Có thể kéo đi nếu nó che màn hình
-
-local line = Instance.new("Frame", main)
-line.Size = UDim2.new(1, 0, 0, 2)
-line.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
-
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 30)
-title.Text = "tri73637 V64"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.BackgroundTransparency = 1
-
--- 3. NÚT BẬT/TẮT (TOGGLE)
-local auto = true -- Mặc định bật khi chạy script
-local btn = Instance.new("TextButton", main)
-btn.Size = UDim2.new(0.9, 0, 0.5, 0)
-btn.Position = UDim2.new(0.05, 0, 0.35, 0)
-btn.Text = "AUTO NHẶT: BẬT"
-btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-btn.TextColor3 = Color3.new(1, 1, 1)
-btn.TextSize = 16
-
--- Hiệu ứng bo góc nút
-local corner = Instance.new("UICorner", btn)
-
-btn.MouseButton1Click:Connect(function()
-    auto = not auto
-    if auto then
-        btn.Text = "AUTO NHẶT: BẬT"
-        btn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    else
-        btn.Text = "AUTO NHẶT: TẮT"
-        btn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-    end
-end)
-
--- 4. LOGIC NHẶT ĐỒ (CHẠY NGẦM THEO BIẾN "AUTO")
 task.spawn(function()
-    while task.wait(0.2) do
-        if auto then
-            pcall(function()
-                local hrp = lp.Character.HumanoidRootPart
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if v:IsA("ProximityPrompt") then
-                        local parent = v.Parent
-                        local targetPos = parent:IsA("BasePart") and parent.Position or parent:GetModelCFrame().p
-                        
-                        -- Khoảng cách nhặt 22 studs
-                        if (hrp.Position - targetPos).Magnitude < 22 then
-                            v.HoldDuration = 0
-                            fireproximityprompt(v)
-                        end
-                    end
+    while task.wait(LOOP_DELAY) do
+        if not _G.AutoPick then continue end
+
+        local char = lp.Character
+        if not char then continue end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then continue end
+
+        local picked = 0
+
+        for _, v in ipairs(workspace:GetDescendants()) do
+            if picked >= MAX_PER_LOOP then break end
+
+            if v:IsA("Tool") and v:FindFirstChild("Handle") then
+                local handle = v.Handle
+                local dist = (hrp.Position - handle.Position).Magnitude
+
+                if dist <= PICK_DISTANCE then
+                    hrp.CFrame = handle.CFrame * CFrame.new(0, 2, 0)
+                    picked += 1
+                    task.wait(0.15)
                 end
-            end)
+            end
         end
     end
 end)
