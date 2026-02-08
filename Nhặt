@@ -1,41 +1,43 @@
--- [[ tri73637 - SMOOTH COLLECT PRO ]] --
+-- [[ tri73637 - FIX AUTO COLLECT ]] --
 local lp = game:GetService("Players").LocalPlayer
-local pps = game:GetService("ProximityPromptService")
 
--- Cấu hình tối ưu
-local RANGE = 20 -- Khoảng cách nhặt (giảm xuống 20 để ổn định hơn)
-local SCAN_DELAY = 0.3 -- Tần suất quét (0.3s là hoàn hảo để không lag)
+-- Cấu hình
+local RANGE = 25 -- Tầm nhặt
+local SPEED = 0.2 -- Tốc độ nhặt
 
 task.spawn(function()
-    while true do
-        task.wait(SCAN_DELAY)
-        
+    while task.wait(SPEED) do
         local character = lp.Character
         local hrp = character and character:FindFirstChild("HumanoidRootPart")
         
         if hrp then
-            -- Chỉ quét các Prompt đang hoạt động trong hệ thống
-            -- Cách này nhanh gấp 100 lần GetDescendants
-            for _, prompt in pairs(pps:GetEventListeners()) do
-                if prompt:IsA("ProximityPrompt") then
-                    local part = prompt.Parent
-                    if part and part:IsA("BasePart") then
-                        local distance = (hrp.Position - part.Position).Magnitude
+            -- Dùng pcall để tránh script bị dừng nếu gặp vật thể lỗi
+            pcall(function()
+                -- Quét các vật thể có ProximityPrompt trong tầm mắt
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        -- Lấy vị trí vật thể (chính xác cho cả Model và Part)
+                        local target = v.Parent
+                        local pos = nil
                         
-                        if distance <= RANGE then
-                            -- TỐI ƯU QUAN TRỌNG:
-                            -- 1. Bỏ thời gian chờ nhặt
-                            prompt.HoldDuration = 0
-                            
-                            -- 2. Dùng defer để lệnh nhặt chạy sau lệnh di chuyển
-                            -- Điều này giúp nhân vật không bị khựng (stutter)
-                            task.defer(function()
-                                fireproximityprompt(prompt)
+                        if target:IsA("BasePart") then
+                            pos = target.Position
+                        elseif target:IsA("Model") then
+                            pos = target:GetModelCFrame().Position
+                        end
+                        
+                        -- Kiểm tra khoảng cách
+                        if pos and (hrp.Position - pos).Magnitude <= RANGE then
+                            -- Chỉnh thời gian nhặt về 0 ngay lập tức
+                            v.HoldDuration = 0
+                            -- Kích hoạt nhặt (Dùng task.spawn để không làm khựng nhân vật)
+                            task.spawn(function()
+                                fireproximityprompt(v)
                             end)
                         end
                     end
                 end
-            end
+            end)
         end
     end
 end)
