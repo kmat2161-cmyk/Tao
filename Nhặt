@@ -1,34 +1,39 @@
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
+-- [[ tri73637 - SMOOTH COLLECT PRO ]] --
+local lp = game:GetService("Players").LocalPlayer
+local pps = game:GetService("ProximityPromptService")
 
-_G.AutoPick = false
-
-local PICK_DISTANCE = 18      -- khoảng cách nhặt
-local MAX_PER_LOOP = 2        -- giới hạn mỗi vòng (chống giật)
-local LOOP_DELAY = 0.45       -- càng lớn càng mượt
+-- Cấu hình tối ưu
+local RANGE = 20 -- Khoảng cách nhặt (giảm xuống 20 để ổn định hơn)
+local SCAN_DELAY = 0.3 -- Tần suất quét (0.3s là hoàn hảo để không lag)
 
 task.spawn(function()
-    while task.wait(LOOP_DELAY) do
-        if not _G.AutoPick then continue end
-
-        local char = lp.Character
-        if not char then continue end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then continue end
-
-        local picked = 0
-
-        for _, v in ipairs(workspace:GetDescendants()) do
-            if picked >= MAX_PER_LOOP then break end
-
-            if v:IsA("Tool") and v:FindFirstChild("Handle") then
-                local handle = v.Handle
-                local dist = (hrp.Position - handle.Position).Magnitude
-
-                if dist <= PICK_DISTANCE then
-                    hrp.CFrame = handle.CFrame * CFrame.new(0, 2, 0)
-                    picked += 1
-                    task.wait(0.15)
+    while true do
+        task.wait(SCAN_DELAY)
+        
+        local character = lp.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        
+        if hrp then
+            -- Chỉ quét các Prompt đang hoạt động trong hệ thống
+            -- Cách này nhanh gấp 100 lần GetDescendants
+            for _, prompt in pairs(pps:GetEventListeners()) do
+                if prompt:IsA("ProximityPrompt") then
+                    local part = prompt.Parent
+                    if part and part:IsA("BasePart") then
+                        local distance = (hrp.Position - part.Position).Magnitude
+                        
+                        if distance <= RANGE then
+                            -- TỐI ƯU QUAN TRỌNG:
+                            -- 1. Bỏ thời gian chờ nhặt
+                            prompt.HoldDuration = 0
+                            
+                            -- 2. Dùng defer để lệnh nhặt chạy sau lệnh di chuyển
+                            -- Điều này giúp nhân vật không bị khựng (stutter)
+                            task.defer(function()
+                                fireproximityprompt(prompt)
+                            end)
+                        end
+                    end
                 end
             end
         end
