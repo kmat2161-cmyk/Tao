@@ -1,43 +1,32 @@
--- [[ tri73637 - FIX AUTO COLLECT ]] --
+-- [[ tri73637 - AUTO NHẶT (KHÔNG MENU, KHÔNG TOGGLE) ]] --
+
 local lp = game:GetService("Players").LocalPlayer
 
--- Cấu hình
-local RANGE = 25 -- Tầm nhặt
-local SPEED = 0.2 -- Tốc độ nhặt
-
 task.spawn(function()
-    while task.wait(SPEED) do
-        local character = lp.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
-        
-        if hrp then
-            -- Dùng pcall để tránh script bị dừng nếu gặp vật thể lỗi
-            pcall(function()
-                -- Quét các vật thể có ProximityPrompt trong tầm mắt
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if v:IsA("ProximityPrompt") then
-                        -- Lấy vị trí vật thể (chính xác cho cả Model và Part)
-                        local target = v.Parent
-                        local pos = nil
-                        
-                        if target:IsA("BasePart") then
-                            pos = target.Position
-                        elseif target:IsA("Model") then
-                            pos = target:GetModelCFrame().Position
-                        end
-                        
-                        -- Kiểm tra khoảng cách
-                        if pos and (hrp.Position - pos).Magnitude <= RANGE then
-                            -- Chỉnh thời gian nhặt về 0 ngay lập tức
-                            v.HoldDuration = 0
-                            -- Kích hoạt nhặt (Dùng task.spawn để không làm khựng nhân vật)
-                            task.spawn(function()
-                                fireproximityprompt(v)
-                            end)
-                        end
+    while task.wait(0.2) do
+        pcall(function()
+            local char = lp.Character
+            if not char then return end
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("ProximityPrompt") then
+                    local parent = v.Parent
+                    local targetPos
+
+                    if parent:IsA("BasePart") then
+                        targetPos = parent.Position
+                    elseif parent:IsA("Model") then
+                        targetPos = parent:GetModelCFrame().p
+                    end
+
+                    if targetPos and (hrp.Position - targetPos).Magnitude < 22 then
+                        v.HoldDuration = 0
+                        fireproximityprompt(v)
                     end
                 end
-            end)
-        end
+            end
+        end)
     end
 end)
