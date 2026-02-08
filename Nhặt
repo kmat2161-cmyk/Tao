@@ -1,33 +1,20 @@
--- [[ tri73637 - SILENT AUTO COLLECT V64 ]] --
+-- [[ tri73637 - ONE CLICK PICKUP V65 ]] --
 local lp = game:GetService("Players").LocalPlayer
+local pgui = lp:FindFirstChild("PlayerGui")
 
--- Cấu hình nhanh
-local RANGE = 22 -- Khoảng cách nhặt
-local DELAY = 0.2 -- Tốc độ quét (0.2 là mức ổn định, không lag)
-
-print("tri73637 V64: Auto Nhặt đang chạy ngầm...")
-
+-- 1. LOGIC CHẠY NGẦM CHO AUTO
 task.spawn(function()
-    while task.wait(DELAY) do
-        -- Kiểm tra nếu nhân vật còn sống
-        local character = lp.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
-        
-        if hrp then
+    while task.wait(0.3) do
+        if auto then
             pcall(function()
-                -- Thay vì GetDescendants (nặng), ta dùng cơ chế tối ưu hơn nếu có thể
-                -- Nhưng để đảm bảo nhặt được mọi thứ, ta vẫn quét workspace
+                local hrp = lp.Character.HumanoidRootPart
                 for _, v in pairs(workspace:GetDescendants()) do
                     if v:IsA("ProximityPrompt") then
-                        local parent = v.Parent
-                        if parent then
-                            -- Lấy vị trí của vật phẩm
-                            local targetPos = parent:IsA("BasePart") and parent.Position or (parent:IsA("Model") and parent:GetModelCFrame().p)
-                            
-                            if targetPos and (hrp.Position - targetPos).Magnitude < RANGE then
-                                v.HoldDuration = 0 -- Nhặt ngay lập tức không cần chờ thanh tiến trình
-                                fireproximityprompt(v)
-                            end
+                        local p = v.Parent
+                        local pos = p:IsA("Model") and p:GetModelCFrame().p or p.Position
+                        if (hrp.Position - pos).Magnitude < 22 then
+                            v.HoldDuration = 0
+                            fireproximityprompt(v)
                         end
                     end
                 end
