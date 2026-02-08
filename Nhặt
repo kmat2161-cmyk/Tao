@@ -1,33 +1,37 @@
--- [[ tri73637 - AUTO PROXIMITY ONLY ]] --
+-- [[ tri73637 - SILENT AUTO COLLECT V64 ]] --
 local lp = game:GetService("Players").LocalPlayer
 
-task.spawn(function()
-    while task.wait(0.2) do
-        pcall(function()
-            local character = lp.Character
-            if not character then return end
-            
-            local hrp = character:FindFirstChild("HumanoidRootPart")
-            if not hrp then return end
+-- Cấu hình nhanh
+local RANGE = 22 -- Khoảng cách nhặt
+local DELAY = 0.2 -- Tốc độ quét (0.2 là mức ổn định, không lag)
 
-            -- Duyệt tìm các vật phẩm có ProximityPrompt trong Workspace
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("ProximityPrompt") then
-                    local parent = v.Parent
-                    if parent then
-                        -- Xác định vị trí của vật phẩm
-                        local targetPos = parent:IsA("BasePart") and parent.Position or (parent:IsA("Model") and parent:GetModelCFrame().p)
-                        
-                        if targetPos then
-                            -- Kiểm tra khoảng cách (22 studs)
-                            if (hrp.Position - targetPos).Magnitude < 22 then
-                                v.HoldDuration = 0 -- Nhặt tức thì không cần đợi thanh tiến trình
+print("tri73637 V64: Auto Nhặt đang chạy ngầm...")
+
+task.spawn(function()
+    while task.wait(DELAY) do
+        -- Kiểm tra nếu nhân vật còn sống
+        local character = lp.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        
+        if hrp then
+            pcall(function()
+                -- Thay vì GetDescendants (nặng), ta dùng cơ chế tối ưu hơn nếu có thể
+                -- Nhưng để đảm bảo nhặt được mọi thứ, ta vẫn quét workspace
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        local parent = v.Parent
+                        if parent then
+                            -- Lấy vị trí của vật phẩm
+                            local targetPos = parent:IsA("BasePart") and parent.Position or (parent:IsA("Model") and parent:GetModelCFrame().p)
+                            
+                            if targetPos and (hrp.Position - targetPos).Magnitude < RANGE then
+                                v.HoldDuration = 0 -- Nhặt ngay lập tức không cần chờ thanh tiến trình
                                 fireproximityprompt(v)
                             end
                         end
                     end
                 end
-            end
-        end)
+            end)
+        end
     end
 end)
